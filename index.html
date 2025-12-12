@@ -1,0 +1,2507 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NeonTrack  </title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content=" NeonTrack ">
+    <meta name="apple-mobile-web-app-title" content="NeonTrack">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#00e676">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="msapplication-TileColor" content="#00e676">
+    <meta name="msapplication-starturl" content="./">
+    <meta name="description" content="تطبيق إدارة المهام والعادات والتقدم التعليمي">
+    
+    <!-- PWA Manifest & Icons -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" href="icons/icon-192x192.png" type="image/png">
+    <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-192x192.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512x512.png">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PWFPMRD06Z"></script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- الأنماط -->
+    <style>
+        /* ==== 1. RESET & BASE ==== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        
+        html {
+            font-size: 14px;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            line-height: 1.5;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            min-height: 100vh;
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        /* ==== PWA INSTALL NOTIFICATION ==== */
+        .pwa-top-notification {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(90deg, #07b661 0%, #00e676 100%);
+            color: white;
+            padding: 12px 15px;
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10000;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border-bottom: 2px solid #00e676;
+            animation: slideDown 0.4s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .pwa-notification-content {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .pwa-notification-icon {
+            font-size: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pwa-notification-text {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .pwa-notification-text strong {
+            display: block;
+            font-size: 15px;
+        }
+
+        .pwa-notification-text small {
+            opacity: 0.9;
+            font-size: 12px;
+        }
+
+        .pwa-notification-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .pwa-notification-btn {
+            background: #00e676;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 13px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .pwa-notification-btn:active {
+            background: #00c853;
+            transform: scale(0.95);
+        }
+
+        .pwa-notification-close {
+            background: none;
+            border: none;
+            color: #ff5252;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 4px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .pwa-notification-close:active {
+            background: rgba(255, 82, 82, 0.1);
+        }
+
+        /* تعديل الـ container لعمل مساحة للإشعار */
+        body.has-pwa-notification .container {
+            padding-top: 80px;
+        }
+
+        /* ==== PWA INSTALL BAR (أسفل) ==== */
+        .pwa-install-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1e1e1e;
+            border-top: 1px solid #333;
+            padding: 15px;
+            display: none;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9999;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .pwa-install-text {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            flex-grow: 1;
+            margin-right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pwa-install-btn {
+            background: #00e676;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+
+        .pwa-install-btn:active {
+            background: #00c853;
+            transform: scale(0.95);
+        }
+
+        .pwa-close-btn {
+            background: transparent;
+            border: none;
+            color: #ff5252;
+            font-size: 24px;
+            cursor: pointer;
+            margin-left: 10px;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+
+        .pwa-close-btn:active {
+            background: rgba(255, 82, 82, 0.1);
+        }
+
+        /* ==== PWA STANDALONE MODE ==== */
+        @media all and (display-mode: standalone) {
+            .pwa-top-notification,
+            .pwa-install-bar {
+                display: none !important;
+            }
+            
+            body {
+                padding-top: env(safe-area-inset-top);
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+        }
+
+        /* ==== 2. CONTAINER ==== */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 15px 10px 90px;
+            min-height: 100vh;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ==== 3. NAVIGATION ==== */
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            padding: 0 10px;
+        }
+        
+        .nav-btn {
+            padding: 14px 20px;
+            background: #1e1e1e;
+            border: 2px solid #00e676;
+            color: #00e676;
+            cursor: pointer;
+            border-radius: 25px;
+            font-weight: bold;
+            font-size: 15px;
+            min-width: 110px;
+            text-align: center;
+            transition: all 0.2s;
+            flex: 1;
+            min-height: 50px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .nav-btn.active, .nav-btn:active {
+            background: #00e676;
+            color: #000;
+            box-shadow: 0 0 15px rgba(0, 230, 118, 0.3);
+            transform: scale(0.98);
+        }
+
+        /* ==== 4. أقسام التطبيق ==== */
+        .view-section {
+            display: none;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .view-section.active {
+            display: block;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ==== 5. قسم الإنتاجية ==== */
+        .header-box {
+            background: #1e1e1e;
+            padding: 20px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .week-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .week-controls button {
+            background: #121212;
+            color: #00e676;
+            border: 1px solid #00e676;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            min-width: 80px;
+            min-height: 44px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .week-controls button:active {
+            background: #00e676;
+            color: #000;
+            transform: scale(0.95);
+        }
+        
+        #currentWeekRange {
+            margin: 0 10px;
+            font-weight: bold;
+            font-size: 14px;
+            text-align: center;
+            display: block;
+            width: 100%;
+        }
+
+        .top-row {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .chart-card {
+            background: #1e1e1e;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #333;
+            width: 100%;
+        }
+        
+        .section-header {
+            color: #00e676;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .add-habit-btn {
+            background: #00e676;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .add-habit-btn:active {
+            background: #00c853;
+            transform: scale(0.95);
+        }
+
+        .habit-table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin: 0 -5px;
+            padding: 0 5px;
+        }
+        
+        .habit-table {
+            width: 100%;
+            min-width: 650px;
+            border-collapse: collapse;
+            text-align: center;
+        }
+        
+        .habit-table th {
+            color: #b0b0b0;
+            padding: 12px 8px;
+            font-size: 12px;
+            background: #2a2a2a;
+            position: sticky;
+            left: 0;
+            white-space: nowrap;
+        }
+        
+        .habit-table td {
+            padding: 12px 8px;
+            border-top: 1px solid #333;
+            min-width: 45px;
+        }
+        
+        input[type="checkbox"] {
+            appearance: none;
+            width: 28px;
+            height: 28px;
+            border: 2px solid #b0b0b0;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto;
+            -webkit-appearance: none;
+        }
+        
+        input[type="checkbox"]:checked {
+            background-color: #00e676;
+            border-color: #00e676;
+        }
+        
+        input[type="checkbox"]:checked::after {
+            content: '✓';
+            color: black;
+            font-size: 18px;
+            font-weight: bold;
+            position: absolute;
+        }
+
+        .habit-actions {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 10px;
+        }
+        
+        .edit-habit-btn, .delete-habit-btn {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            min-width: 60px;
+            justify-content: center;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .edit-habit-btn {
+            background: #00e676;
+            color: white;
+        }
+        
+        .edit-habit-btn:active {
+            background: #00e676;
+            transform: scale(0.95);
+        }
+        
+        .delete-habit-btn {
+            background: #ff5252;
+            color: white;
+        }
+        
+        .delete-habit-btn:active {
+            background: #d32f2f;
+            transform: scale(0.95);
+        }
+
+        .week-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .day-column {
+            background: #1e1e1e;
+            border-radius: 12px;
+            border: 1px solid #333;
+            transition: all 0.3s;
+        }
+        
+        .day-column:active {
+            transform: scale(0.99);
+            border-color: #00e676;
+        }
+        
+        .day-header {
+            background: #2a2a2a;
+            padding: 15px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+        }
+        
+        .day-header h3 {
+            margin: 0;
+            font-size: 16px;
+            color: #00e676;
+        }
+        
+        .day-header span {
+            font-size: 12px;
+            color: #b0b0b0;
+        }
+        
+        .day-content {
+            padding: 15px;
+        }
+
+        .circle-progress {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin: 15px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: conic-gradient(#00e676 0% 0%, #333 0% 100%);
+            transition: background 0.5s ease;
+        }
+        
+        .circle-inner {
+            width: 65px;
+            height: 65px;
+            background: #1e1e1e;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        
+        .task-input-group {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+        
+        .task-input {
+            flex: 1;
+            padding: 12px;
+            background: #121212;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 8px;
+            font-size: 16px;
+            min-height: 48px;
+            -webkit-appearance: none;
+        }
+        
+        .task-input:focus {
+            outline: none;
+            border-color: #00e676;
+        }
+        
+        .task-input-group button {
+            background: #00e676;
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-weight: bold;
+            padding: 0 20px;
+            cursor: pointer;
+            min-width: 50px;
+            min-height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .task-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .task-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #333;
+        }
+        
+        .task-item.completed span {
+            text-decoration: line-through;
+            color: #b0b0b0;
+        }
+        
+        .delete-btn {
+            background: none;
+            border: none;
+            color: #ff5252;
+            cursor: pointer;
+            font-size: 22px;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.7;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .delete-btn:active {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+        /* ==== 6. قسم العادات ==== */
+        .habits-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .habit-stat-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .habit-stat-num {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 5px;
+        }
+
+        .habit-stat-label {
+            font-size: 0.85rem;
+            color: #b0b0b0;
+            font-weight: 600;
+        }
+
+        .habits-dashboard {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .habits-date-range {
+            font-weight: 800;
+            font-size: 1.1rem;
+            margin: 8px 0 18px;
+            direction: ltr;
+            color: white;
+        }
+
+        .habits-week-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .week-nav-btn {
+            background: #27272a;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .week-nav-btn:active {
+            background: #3a3a3d;
+            transform: scale(0.95);
+        }
+
+        .habits-panel {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .habits-panel-header {
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+
+        .habit-header-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #27272a;
+        }
+
+        .habit-name-header {
+            flex-grow: 1;
+            text-align: right;
+            color: #b0b0b0;
+            font-weight: 600;
+        }
+
+        .days-labels {
+            display: flex;
+            gap: 6px;
+        }
+
+        .day-label {
+            width: 28px;
+            text-align: center;
+            font-size: 0.75rem;
+            color: #b0b0b0;
+            font-weight: bold;
+        }
+
+        .habit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid #1f1f22;
+        }
+
+        .habit-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+        }
+
+        .habit-name {
+            font-size: 0.9rem;
+            color: #e4e4e7;
+            text-align: right;
+            flex-grow: 1;
+        }
+
+        .edit-icon {
+            color: #b0b0b0;
+            font-size: 1.2rem;
+            cursor: pointer;
+            opacity: 0.7;
+            padding: 0 5px;
+            flex-shrink: 0;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .edit-icon:active {
+            color: #00e676;
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .habit-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .habit-dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            background: #1f1f22;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .habit-dot:active {
+            border-color: #444;
+            transform: scale(1.05);
+        }
+
+        .habit-dot.active-good {
+            background: #00e676;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+            border-color: #00e676;
+        }
+
+        .habit-dot.active-bad {
+            background: #ef4444;
+            box-shadow: 0 0 12px rgba(239, 68, 68, 0.4);
+            border-color: #ef4444;
+        }
+
+        .habits-analysis-panel {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .habits-chart-container {
+            height: 220px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .habits-controls {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .reset-btn {
+            background: transparent;
+            color: #71717a;
+            border: 1px solid #333;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .reset-btn:active {
+            border-color: #ef4444;
+            color: #ef4444;
+            transform: scale(0.98);
+        }
+
+        .good-habits-panel {
+            border-right: 4px solid #00e676;
+        }
+
+        .bad-habits-panel {
+            border-right: 4px solid #ef4444;
+        }
+
+        .good-habits-panel .habits-panel-header {
+            color: #00e676;
+        }
+
+        .bad-habits-panel .habits-panel-header {
+            color: #ef4444;
+        }
+
+        /* ==== 7. قسم الكورسات ==== */
+        .course-header {
+            background: #1e1e1e;
+            padding: 20px 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            border: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .course-header-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .course-main-title {
+            font-weight: 800;
+            font-size: 1.6rem;
+            color: white;
+            margin: 0;
+        }
+
+        .add-course-btn {
+            background: #00e676;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .add-course-btn:active {
+            background: #00c853;
+            transform: translateY(-2px);
+        }
+
+        .course-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        .courses-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .course-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+
+        .course-card:active {
+            border-color: #00e676;
+            transform: translateY(-3px);
+        }
+
+        .course-card h3 {
+            margin: 0;
+            font-weight: 700;
+            color: white;
+            font-size: 1.1rem;
+        }
+
+        .course-progress {
+            font-size: 0.9rem;
+            color: #b0b0b0;
+            margin: 5px 0 15px;
+        }
+
+        .progress-track {
+            height: 10px;
+            background: #2a2a2a;
+            border-radius: 20px;
+            margin: 15px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00e676, #00c853);
+            width: 0%;
+            transition: width 0.6s;
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.3);
+        }
+
+        .c-btn {
+            border: 1px solid #00e676;
+            color: #00e676;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-left: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .c-btn:active {
+            background: #00e676;
+            color: #000;
+            transform: scale(0.95);
+        }
+
+        .c-btn.danger {
+            border-color: #ff5252;
+            color: #ff5252;
+        }
+
+        .c-btn.danger:active {
+            background: #ff5252;
+            color: #fff;
+            transform: scale(0.95);
+        }
+
+        .course-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .stat-card {
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .panel-header {
+            color: #00e676;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chart-container {
+            height: 250px;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .stat-info {
+            margin-top: 20px;
+        }
+
+        .stat-label {
+            color: #b0b0b0;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        .stat-number-large {
+            font-size: 2.2rem;
+            font-weight: 800;
+            color: #00e676;
+            text-align: center;
+            margin: 10px 0;
+        }
+
+        .empty-courses {
+            text-align: center;
+            padding: 40px 20px;
+            background: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 16px;
+            margin-bottom: 20px;
+        }
+
+        .empty-courses-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #00e676;
+        }
+
+        .empty-courses-title {
+            font-size: 1.3rem;
+            color: #b0b0b0;
+            margin-bottom: 10px;
+        }
+
+        .empty-courses-subtitle {
+            color: #888;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .course-percentage {
+            color: #00e676;
+            font-weight: 800;
+            font-size: 1.2rem;
+        }
+
+        .course-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        /* ==== 8. المودالات ==== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            padding: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .modal-overlay.open {
+            display: flex;
+            opacity: 1;
+        }
+        
+        .modal {
+            background: #1e1e1e;
+            border-radius: 16px;
+            padding: 25px;
+            width: 100%;
+            max-width: 450px;
+            border: 1px solid #00e676;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: transform 0.3s;
+        }
+        
+        .modal-overlay.open .modal {
+            transform: scale(1);
+        }
+        
+        .modal-header {
+            color: #00e676;
+            font-size: 20px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .modal-close {
+            background: none;
+            border: none;
+            color: #ff5252;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            color: #b0b0b0;
+            font-weight: bold;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px;
+            background: #121212;
+            border: 1px solid #333;
+            border-radius: 8px;
+            color: white;
+            font-size: 16px;
+            text-align: center;
+            -webkit-appearance: none;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #00e676;
+            box-shadow: 0 0 10px rgba(0, 230, 118, 0.2);
+        }
+        
+        .modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        
+        .modal-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 16px;
+            min-width: 100px;
+            transition: all 0.3s;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        
+        .modal-btn.primary {
+            background: #00e676;
+            color: #000;
+        }
+        
+        .modal-btn.primary:active {
+            background: #00c853;
+            transform: translateY(-2px);
+        }
+        
+        .modal-btn.secondary {
+            background: #333;
+            color: white;
+        }
+        
+        .modal-btn.secondary:active {
+            background: #444;
+            transform: translateY(-2px);
+        }
+
+        /* ==== 10. MEDIA QUERIES ==== */
+        @media (min-width: 480px) {
+            html { font-size: 15px; }
+            .container { padding: 15px 15px 90px; }
+            .nav-tabs { gap: 15px; }
+            .nav-btn { min-width: 120px; }
+        }
+        
+        @media (min-width: 600px) {
+            .week-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .habit-table {
+                min-width: auto;
+            }
+        }
+        
+        @media (min-width: 768px) {
+            .top-row, .course-layout {
+                flex-direction: row;
+            }
+            
+            .chart-card:first-child {
+                flex: 1;
+            }
+            
+            .chart-card:last-child {
+                flex: 2;
+            }
+            
+            .week-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .header-box {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+            }
+            
+            .course-layout {
+                grid-template-columns: 1fr 350px;
+            }
+        }
+        
+        @media (min-width: 1024px) {
+            .container {
+                max-width: 1200px;
+                padding: 20px 20px 90px;
+            }
+            
+            .week-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+            
+            body {
+                padding: 20px;
+            }
+        }
+        
+        @media (min-width: 1200px) {
+            .week-grid {
+                grid-template-columns: repeat(7, 1fr);
+            }
+        }
+
+        /* ==== 11. SCROLLBAR ==== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #00e676;
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00c853;
+        }
+    </style>
+</head>
+<body>
+
+<!-- إشعار التثبيت العلوي -->
+<div class="pwa-top-notification" id="pwaTopNotification">
+    <div class="pwa-notification-content">
+        <div class="pwa-notification-icon">📱</div>
+        <div class="pwa-notification-text">
+            <strong>تثبيت التطبيق</strong>
+            <small>للوصول السريع والتجربة الأفضل</small>
+        </div>
+    </div>
+    <div class="pwa-notification-actions">
+        <button class="pwa-notification-btn" onclick="installPWA()">
+            تثبيت
+        </button>
+        <button class="pwa-notification-close" onclick="hidePWATopNotification()">
+            ✕
+        </button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- التنقل -->
+    <div class="nav-tabs">
+        <div class="nav-btn active" onclick="switchView('productivity')">ملخص اليوم</div>
+        <div class="nav-btn" onclick="switchView('courses')">الكورسات</div>
+    </div>
+
+    <!-- قسم الإنتاجية -->
+    <div id="productivity" class="view-section active">
+        <div class="header-box">
+            <div>
+                <h2 style="margin:0; color: white; font-size: 20px;">تركيز الأسبوع</h2>
+                <small style="color: #00e676;">الإلهام يأتي فقط أثناء العمل</small>
+            </div>
+            <div class="week-controls">
+                <button onclick="changeWeek(-1)">◀ السابق</button>
+                <span id="currentWeekRange" style="font-weight:bold;">...</span>
+                <button onclick="changeWeek(1)">التالى ▶</button>
+            </div>
+        </div>
+
+        <div class="top-row">
+            <div class="chart-card">
+                <div class="section-header">تقدم الأسبوع</div>
+                <div style="height: 250px;">
+                    <canvas id="weeklyChart"></canvas>
+                </div>
+                <div style="text-align: center; margin-top: 15px; font-size: 0.9rem; color: #b0b0b0;">
+                    الإنجاز الكلي: <span id="totalCompletionRate" style="color: #00e676; font-size: 1.2rem; font-weight: bold;">0%</span>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <div class="section-header">
+                    <span>عاداتك اليومية</span>
+                    <button class="add-habit-btn" onclick="openAddHabitModal()">
+                        + إضافة عادة
+                    </button>
+                </div>
+                <div class="habit-table-container">
+                    <table class="habit-table" id="habitTable">
+                        <!-- سيتم ملؤه جافاسكريبت -->
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="week-grid" id="weekGrid">
+            <!-- سيتم ملؤه جافاسكريبت -->
+        </div>
+    </div>
+
+    <!-- قسم الكورسات -->
+    <div id="courses" class="view-section">
+        <div class="course-header">
+            <h2 style="margin:0; color: white; font-size: 20px;">تحليل الكورسات</h2>
+            <small style="color: #00e676;">تتبع تقدمك التعليمي</small>
+        </div>
+
+        <div class="course-header-actions">
+            <h2 class="course-main-title">محفظة التعلم</h2>
+            <button onclick="openAddCourseModal()" class="add-course-btn">
+                + كورس جديد
+            </button>
+        </div>
+
+        <div class="course-layout">
+            <div id="coursesList"></div>
+
+            <div class="courses-sidebar">
+                <div class="stat-card">
+                    <div class="panel-header">
+                        <span>إحصائيات الكورسات</span>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="courseChart"></canvas>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-label">إجمالي الدروس المتبقية</div>
+                        <div id="totalLessonsLeft" class="stat-number">0</div>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="panel-header">
+                        <span>كورسات نشطة</span>
+                    </div>
+                    <div id="activeCourses" class="stat-number-large">0</div>
+                    <div class="stat-info">
+                        <span>من أصل <span id="totalCourses">0</span> كورس</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- شريط التثبيت السفلي -->
+<div class="pwa-install-bar" id="pwaInstallBar">
+    <div class="pwa-install-text">
+        <span>📱</span>
+        تثبيت التطبيق على الشاشة الرئيسية
+    </div>
+    <div style="display: flex; align-items: center;">
+        <button class="pwa-install-btn" onclick="installPWA()">
+            تثبيت
+        </button>
+        <button class="pwa-close-btn" onclick="hidePWAInstallBar()">×</button>
+    </div>
+</div>
+
+<!-- المودالات -->
+<div class="modal-overlay" id="addHabitModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span>إضافة عادة جديدة</span>
+            <button class="modal-close" onclick="closeAddHabitModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">اسم العادة</label>
+                <input type="text" id="newHabitName" class="form-input" placeholder="مثال: شرب 8 أكواب ماء">
+            </div>
+            <div class="form-group">
+                <label class="form-label">وقت الممارسة (اختياري)</label>
+                <input type="text" id="newHabitTime" class="form-input" placeholder="مثال: 07:00 صباحاً">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn secondary" onclick="closeAddHabitModal()">إلغاء</button>
+            <button class="modal-btn primary" onclick="saveNewHabit()">حفظ</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editHabitModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span>تعديل العادة</span>
+            <button class="modal-close" onclick="closeEditHabitModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">اسم العادة</label>
+                <input type="text" id="editHabitName" class="form-input">
+                <input type="hidden" id="editHabitIndex">
+            </div>
+            <div class="form-group">
+                <label class="form-label">وقت الممارسة (اختياري)</label>
+                <input type="text" id="editHabitTime" class="form-input" placeholder="مثال: 07:00 صباحاً">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn secondary" onclick="closeEditHabitModal()">إلغاء</button>
+            <button class="modal-btn primary" onclick="saveEditedHabit()">حفظ التعديلات</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="addCourseModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span>إضافة كورس جديد</span>
+            <button class="modal-close" onclick="closeAddCourseModal()">×</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">اسم الكورس</label>
+                <input type="text" id="newCourseName" class="form-input" placeholder="مثال: جافاسكريبت متقدم">
+            </div>
+            <div class="form-group">
+                <label class="form-label">عدد الدروس الكلي</label>
+                <input type="number" id="newCourseTotal" class="form-input" placeholder="مثال: 50">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-btn secondary" onclick="closeAddCourseModal()">إلغاء</button>
+            <button class="modal-btn primary" onclick="saveNewCourse()">حفظ الكورس</button>
+        </div>
+    </div>
+</div>
+
+<!-- الجافاسكريبت -->
+<script>
+    // ===== PWA FUNCTIONS =====
+    let deferredPrompt;
+    let isAppInstalled = false;
+
+    // التحقق من وضع التطبيق
+    function checkDisplayMode() {
+        if (window.matchMedia('(display-mode: standalone)').matches || 
+            window.navigator.standalone) {
+            console.log('📱 التطبيق مثبت بالفعل');
+            isAppInstalled = true;
+            return true;
+        }
+        return false;
+    }
+
+    // تسجيل Service Worker
+    function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+                .then(reg => console.log('✅ Service Worker مسجل'))
+                .catch(err => console.log('❌ فشل تسجيل Service Worker:', err));
+        }
+    }
+
+    // عرض إشعار التثبيت العلوي
+    function showTopInstallNotification() {
+        if (checkDisplayMode() || isAppInstalled) return;
+        
+        const notification = document.getElementById('pwaTopNotification');
+        if (notification) {
+            // إظهار بعد 3 ثواني
+            setTimeout(() => {
+                notification.style.display = 'flex';
+                document.body.classList.add('has-pwa-notification');
+            }, 3000);
+        }
+    }
+
+    // إخفاء إشعار التثبيت العلوي
+    function hidePWATopNotification() {
+        const notification = document.getElementById('pwaTopNotification');
+        if (notification) {
+            notification.style.display = 'none';
+            document.body.classList.remove('has-pwa-notification');
+        }
+    }
+
+    // إخفاء شريط التثبيت السفلي
+    function hidePWAInstallBar() {
+        const bar = document.getElementById('pwaInstallBar');
+        if (bar) bar.style.display = 'none';
+    }
+
+    // تثبيت التطبيق
+    function installPWA() {
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            deferredPrompt.userChoice.then(choiceResult => {
+                if (choiceResult.outcome === 'accepted') {
+                    console.log('✅ تم تثبيت التطبيق');
+                    isAppInstalled = true;
+                    hidePWATopNotification();
+                    hidePWAInstallBar();
+                }
+                deferredPrompt = null;
+            });
+        }
+    }
+
+    // إدارة حدث beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // التحقق من وضع التطبيق أولاً
+        if (checkDisplayMode()) return;
+        
+        // عرض الإشعار العلوي
+        showTopInstallNotification();
+        
+        // عرض الشريط السفلي بعد 10 ثواني
+        setTimeout(() => {
+            if (!isAppInstalled) {
+                const bar = document.getElementById('pwaInstallBar');
+                if (bar) bar.style.display = 'flex';
+            }
+        }, 10000);
+    });
+
+    // عند تثبيت التطبيق
+    window.addEventListener('appinstalled', () => {
+        console.log('🎉 تم تثبيت PWA بنجاح');
+        isAppInstalled = true;
+        hidePWATopNotification();
+        hidePWAInstallBar();
+    });
+
+    // ==== بيانات التطبيق ====
+    let HABITS_LIST = JSON.parse(localStorage.getItem('habitsList')) || [
+        'الاستيقاظ 06:00',
+        'تخطيط اليوم', 
+        'صلاة الفجر', 
+        'قراءة', 
+        'عمل '
+    ];
+    
+    // بيانات قسم العادات
+    const DEFAULT_GOOD = ['صلاة الفجر', 'قراءة', 'رياضة', 'مذاكرة عميقة'];
+    const DEFAULT_BAD = ['سوشيال ميديا', 'أكل غير صحي', 'تسويف'];
+    
+    let habitsData = JSON.parse(localStorage.getItem('habitsData')) || {
+        good: [...DEFAULT_GOOD],
+        bad: [...DEFAULT_BAD],
+        tracking: {}
+    };
+    
+    // بيانات الكورسات
+    let COURSES_LIST = JSON.parse(localStorage.getItem('coursesList')) || [];
+    
+    let currentDate = new Date();
+    let habitsCurrentDate = new Date();
+    let appData = JSON.parse(localStorage.getItem('darkDashData')) || {};
+    let currentEditIndex = -1;
+    let currentEditType = null;
+    let myChart = null;
+    let habitChartInstance = null;
+    let courseChartInstance = null;
+    
+    // ==== الدوال الأساسية ====
+    function saveData() {
+        localStorage.setItem('darkDashData', JSON.stringify(appData));
+        localStorage.setItem('habitsList', JSON.stringify(HABITS_LIST));
+        localStorage.setItem('habitsData', JSON.stringify(habitsData));
+        localStorage.setItem('coursesList', JSON.stringify(COURSES_LIST));
+        renderDashboard();
+    }
+    
+    function saveHabitsData() {
+        localStorage.setItem('habitsData', JSON.stringify(habitsData));
+        renderHabitsDashboard();
+    }
+    
+    function saveCoursesData() {
+        localStorage.setItem('coursesList', JSON.stringify(COURSES_LIST));
+        renderCourses();
+    }
+    
+    // ==== قسم الإنتاجية ====
+    function ensureDateRecord(dateStr) {
+        if (!appData[dateStr]) {
+            appData[dateStr] = { tasks: [], habits: {} };
+        }
+    }
+    
+    function getStartOfWeek(date) {
+        const d = new Date(date);
+        const day = d.getDay();
+        const diff = d.getDate() - day;
+        return new Date(d.setDate(diff));
+    }
+    
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    function changeWeek(offset) {
+        currentDate.setDate(currentDate.getDate() + (offset * 7));
+        renderDashboard();
+    }
+    
+    function renderDashboard() {
+        const startOfWeek = getStartOfWeek(currentDate);
+        const weekDates = [];
+        const daysContainer = document.getElementById('weekGrid');
+        const habitTable = document.getElementById('habitTable');
+        
+        daysContainer.innerHTML = '';
+        
+        for (let i = 0; i < 7; i++) {
+            let d = new Date(startOfWeek);
+            d.setDate(startOfWeek.getDate() + i);
+            weekDates.push(d);
+        }
+    
+        document.getElementById('currentWeekRange').innerText = 
+            `${formatDate(weekDates[0])} ➜ ${formatDate(weekDates[6])}`;
+    
+        let habitHTML = `<thead><tr><th style="text-align:right;">العادة</th>`;
+        weekDates.forEach(d => {
+            const dayName = d.toLocaleDateString('ar-EG', {weekday:'short'});
+            habitHTML += `<th>${dayName}</th>`;
+        });
+        habitHTML += `<th>%</th><th>الإجراءات</th></tr></thead><tbody>`;
+    
+        HABITS_LIST.forEach((habit, index) => {
+            let totalChecked = 0;
+            habitHTML += `<tr>
+                <td style="text-align:right; font-weight:bold; padding-right:15px;">
+                    ${habit}
+                </td>`;
+            
+            weekDates.forEach(d => {
+                const dateKey = formatDate(d);
+                ensureDateRecord(dateKey);
+                const isChecked = appData[dateKey].habits[habit] ? 'checked' : '';
+                if(isChecked) totalChecked++;
+                
+                habitHTML += `<td><input type="checkbox" ${isChecked} onchange="toggleHabit('${dateKey}', '${habit}')"></td>`;
+            });
+    
+            let progress = Math.round((totalChecked / 7) * 100);
+            let barColor = progress === 100 ? '#00e676' : (progress > 50 ? '#ffea00' : '#ff5252');
+            
+            habitHTML += `
+                <td>
+                    <div style="background:#333; height:8px; border-radius:4px; width:50px; margin:auto;">
+                        <div style="background:${barColor}; height:100%; width:${progress}%; border-radius:4px;"></div>
+                    </div>
+                </td>
+                <td>
+                    <div class="habit-actions">
+                        <button class="edit-habit-btn" onclick="openEditHabitModal(${index})">
+                             تعديل
+                        </button>
+                        <button class="delete-habit-btn" onclick="deleteHabit(${index})">
+                             حذف
+                        </button>
+                    </div>
+                </td>
+            </tr>`;
+        });
+        
+        if (HABITS_LIST.length === 0) {
+            habitHTML += `<tr><td colspan="10" style="text-align:center; padding:30px; color:#b0b0b0;">
+                لا توجد عادات بعد. أضف عادة جديدة!
+            </td></tr>`;
+        }
+        
+        habitHTML += `</tbody>`;
+        habitTable.innerHTML = habitHTML;
+    
+        let chartLabels = [];
+        let chartDataCompleted = [];
+        let chartDataPending = [];
+    
+        weekDates.forEach(d => {
+            const dateKey = formatDate(d);
+            ensureDateRecord(dateKey);
+            const dayData = appData[dateKey];
+            
+            const totalTasks = dayData.tasks.length;
+            const completedTasks = dayData.tasks.filter(t => t.completed).length;
+            const progress = totalTasks === 0 ? 0 : Math.round((completedTasks / totalTasks) * 100);
+    
+            chartLabels.push(d.toLocaleDateString('ar-EG', {weekday:'short'}));
+            chartDataCompleted.push(completedTasks);
+            chartDataPending.push(totalTasks - completedTasks);
+    
+            let tasksHTML = '';
+            dayData.tasks.forEach((task, index) => {
+                tasksHTML += `
+                <li class="task-item ${task.completed ? 'completed' : ''}">
+                    <div style="display:flex; align-items:center; gap:10px;">
+                        <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask('${dateKey}', ${index})">
+                        <span>${task.text}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTask('${dateKey}', ${index})">×</button>
+                </li>`;
+            });
+    
+            daysContainer.innerHTML += `
+                <div class="day-column">
+                    <div class="day-header">
+                        <h3>${d.toLocaleDateString('ar-EG', {weekday:'long'})}</h3>
+                        <span>${dateKey}</span>
+                    </div>
+                    <div class="day-content">
+                        <div class="circle-progress" id="circle-${dateKey}" style="background: conic-gradient(#00e676 0% ${progress}%, #333 ${progress}% 100%);">
+                            <div class="circle-inner">${progress}%</div>
+                        </div>
+                        
+                        <div class="task-input-group">
+                            <input type="text" id="input-${dateKey}" class="task-input" placeholder="+ إضافة مهمة" 
+                                   onkeypress="handleEnter(event, '${dateKey}')">
+                            <button onclick="addTask('${dateKey}')">➜</button>
+                        </div>
+    
+                        <ul class="task-list">
+                            ${tasksHTML}
+                        </ul>
+                    </div>
+                </div>
+            `;
+        });
+    
+        updateChart(chartLabels, chartDataCompleted, chartDataPending);
+    }
+    
+    function toggleHabitProductivity(dateKey, habit) {
+        appData[dateKey].habits[habit] = !appData[dateKey].habits[habit];
+        saveData();
+    }
+    
+    function addTask(dateKey) {
+        const input = document.getElementById(`input-${dateKey}`);
+        const text = input.value.trim();
+        if (!text) return;
+        appData[dateKey].tasks.push({ text: text, completed: false });
+        input.value = '';
+        saveData();
+    }
+    
+    function handleEnter(e, dateKey) {
+        if (e.key === 'Enter') addTask(dateKey);
+    }
+    
+    function toggleTask(dateKey, index) {
+        appData[dateKey].tasks[index].completed = !appData[dateKey].tasks[index].completed;
+        saveData();
+    }
+    
+    function deleteTask(dateKey, index) {
+        if(confirm('حذف هذه المهمة؟')) {
+            appData[dateKey].tasks.splice(index, 1);
+            saveData();
+        }
+    }
+    
+    function updateChart(labels, completed, pending) {
+        const ctx = document.getElementById('weeklyChart').getContext('2d');
+        if (myChart) myChart.destroy();
+    
+        Chart.defaults.color = '#b0b0b0';
+        Chart.defaults.borderColor = '#333';
+    
+        myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    { 
+                        label: 'مكتمل', 
+                        data: completed, 
+                        backgroundColor: '#00e676', 
+                        borderRadius: 5,
+                        barPercentage: 0.6
+                    },
+                    { 
+                        label: 'قيد الانتظار', 
+                        data: pending, 
+                        backgroundColor: '#2a2a2a', 
+                        borderRadius: 5,
+                        barPercentage: 0.6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        stacked: true, 
+                        grid: { display: false },
+                        ticks: { font: { size: 12 } }
+                    },
+                    y: { 
+                        stacked: true, 
+                        beginAtZero: true,
+                        ticks: { font: { size: 12 } }
+                    }
+                },
+                plugins: { 
+                    legend: { 
+                        labels: { 
+                            color: 'white',
+                            font: { size: 14 }
+                        } 
+                    } 
+                }
+            }
+        });
+    
+        const totalC = completed.reduce((a, b) => a + b, 0);
+        const totalP = pending.reduce((a, b) => a + b, 0);
+        const total = totalC + totalP;
+        const rate = total === 0 ? 0 : Math.round((totalC / total) * 100);
+        document.getElementById('totalCompletionRate').innerText = rate + "%";
+    }
+    
+    // ==== قسم العادات ====
+    function getWeekDatesForHabits() {
+        const d = new Date(habitsCurrentDate);
+        const day = d.getDay();
+        const diff = d.getDate() - day;
+        const start = new Date(d.setDate(diff));
+        let dates = [];
+        for(let i = 0; i < 7; i++) {
+            let temp = new Date(start);
+            temp.setDate(start.getDate() + i);
+            dates.push(temp);
+        }
+        return dates;
+    }
+    
+    function changeHabitWeek(offset) {
+        habitsCurrentDate.setDate(habitsCurrentDate.getDate() + (offset * 7));
+        renderHabitsDashboard();
+    }
+    
+    function ensureHabitDateRecord(dateStr) {
+        if (!habitsData.tracking[dateStr]) {
+            habitsData.tracking[dateStr] = { good: {}, bad: {} };
+        }
+    }
+    
+    function renderHabitsDashboard() {
+        const dates = getWeekDatesForHabits();
+        document.getElementById('habitsDateRange').innerText = 
+            `${formatDate(dates[0])}  ➜  ${formatDate(dates[6])}`;
+    
+        renderHabitSection(dates, 'goodHabitsContainer', habitsData.good, 'good', 'active-good');
+        renderHabitSection(dates, 'badHabitsContainer', habitsData.bad, 'bad', 'active-bad');
+        
+        updateHabitsStats(dates);
+        updateHabitChart(dates);
+    }
+    
+    function renderHabitSection(dates, containerId, habitList, type, activeClass) {
+        const container = document.getElementById(containerId);
+        
+        let headerHTML = `
+        <div class="habit-header-row">
+            <div class="habit-name-header">العادة</div>
+            <div class="days-labels">`;
+        
+        dates.forEach(d => {
+            const letter = d.toLocaleDateString('en-US', {weekday:'narrow'});
+            headerHTML += `<div class="day-label">${letter}</div>`;
+        });
+        
+        headerHTML += `</div></div>`;
+    
+        let rowsHTML = '';
+        
+        habitList.forEach((h, index) => {
+            let dotsHTML = '';
+            dates.forEach(d => {
+                const key = formatDate(d);
+                ensureHabitDateRecord(key);
+                const isActive = habitsData.tracking[key][type][h];
+                dotsHTML += `
+                <div class="habit-dot ${isActive ? activeClass : ''}" 
+                     onclick="toggleHabitSection('${key}', '${type}', '${h}')"
+                     title="${d.toLocaleDateString('ar-EG', {weekday:'long'})}">
+                </div>`;
+            });
+    
+            rowsHTML += `
+            <div class="habit-row">
+                <div class="habit-info">
+                    <span class="habit-name">${h}</span>
+                    <span class="edit-icon" onclick="openEditHabitSectionModal('${type}', ${index}, '${h}')">✏️</span>
+                </div>
+                <div class="habit-dots">${dotsHTML}</div>
+            </div>`;
+        });
+    
+        container.innerHTML = headerHTML + rowsHTML;
+    }
+    
+    function updateHabitsStats(dates) {
+        let goodCount = 0;
+        let badCount = 0;
+        
+        dates.forEach(d => {
+            const key = formatDate(d);
+            const data = habitsData.tracking[key];
+            if (data) {
+                habitsData.good.forEach(h => { if (data.good && data.good[h]) goodCount++; });
+                habitsData.bad.forEach(h => { if (data.bad && data.bad[h]) badCount++; });
+            }
+        });
+        
+        const efficiency = habitsData.good.length > 0 ? Math.round((goodCount / (habitsData.good.length * 7)) * 100) : 0;
+        
+        document.getElementById('habitsEfficiencyScore').innerText = efficiency + '%';
+        document.getElementById('habitsBadHabitCount').innerText = badCount;
+        document.getElementById('habitsActiveHabits').innerText = habitsData.good.length + habitsData.bad.length;
+    }
+    
+    function updateHabitChart(dates) {
+        let goodCount = 0;
+        let badCount = 0;
+        
+        dates.forEach(d => {
+            const key = formatDate(d);
+            const data = habitsData.tracking[key];
+            if (data) {
+                habitsData.good.forEach(h => { if (data.good && data.good[h]) goodCount++; });
+                habitsData.bad.forEach(h => { if (data.bad && data.bad[h]) badCount++; });
+            }
+        });
+    
+        if (goodCount === 0 && badCount === 0) { 
+            goodCount = 1; 
+            badCount = 0; 
+        }
+    
+        const ctx = document.getElementById('habitsStatsChart').getContext('2d');
+        if (habitChartInstance) habitChartInstance.destroy();
+        
+        habitChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['التزام (جيد)', 'زلات (سيئ)'],
+                datasets: [{
+                    data: [goodCount, badCount],
+                    backgroundColor: ['#00e676', '#ef4444'],
+                    borderWidth: 0,
+                    hoverOffset: 5
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '65%',
+                plugins: {
+                    legend: { 
+                        position: 'bottom', 
+                        labels: { 
+                            color: '#b0b0b0', 
+                            font: {family: 'Cairo'} 
+                        } 
+                    }
+                }
+            }
+        });
+    }
+    
+    function toggleHabitSection(key, type, habit) {
+        habitsData.tracking[key][type][habit] = !habitsData.tracking[key][type][habit];
+        saveHabitsData();
+    }
+    
+    function resetHabits(type) {
+        if (confirm("هل أنت متأكد؟ سيعيد هذا أسماء العادات للافتراضي.")) {
+            habitsData[type] = type === 'good' ? [...DEFAULT_GOOD] : [...DEFAULT_BAD];
+            saveHabitsData();
+        }
+    }
+    
+    function openEditHabitSectionModal(type, index, name) {
+        currentEditType = type;
+        currentEditIndex = index;
+        
+        document.getElementById('editHabitName').value = name;
+        document.getElementById('editHabitModal').style.display = 'flex';
+        document.getElementById('editHabitName').focus();
+    }
+    
+    // ==== قسم الكورسات ====
+    function openAddCourseModal() {
+        document.getElementById('addCourseModal').style.display = 'flex';
+        document.getElementById('newCourseName').value = '';
+        document.getElementById('newCourseTotal').value = '';
+        document.getElementById('newCourseName').focus();
+    }
+    
+    function closeAddCourseModal() {
+        document.getElementById('addCourseModal').style.display = 'none';
+    }
+    
+    function saveNewCourse() {
+        const nameInput = document.getElementById('newCourseName');
+        const totalInput = document.getElementById('newCourseTotal');
+        
+        const name = nameInput.value.trim();
+        const total = parseInt(totalInput.value);
+        
+        if (!name) {
+            alert('يرجى إدخال اسم الكورس');
+            nameInput.focus();
+            return;
+        }
+        
+        if (!total || total <= 0) {
+            alert('يرجى إدخال عدد دروس صحيح');
+            totalInput.focus();
+            return;
+        }
+        
+        COURSES_LIST.push({ 
+            name: name, 
+            total: total, 
+            done: 0 
+        });
+        
+        saveCoursesData();
+        closeAddCourseModal();
+    }
+    
+    function modCourse(index, value) {
+        const course = COURSES_LIST[index];
+        const newDone = course.done + value;
+        
+        if (newDone >= 0 && newDone <= course.total) {
+            course.done = newDone;
+            saveCoursesData();
+        }
+    }
+    
+    function delCourse(index) {
+        if (confirm(`هل تريد حذف الكورس "${COURSES_LIST[index].name}"؟`)) {
+            COURSES_LIST.splice(index, 1);
+            saveCoursesData();
+        }
+    }
+    
+    function renderCourses() {
+        const container = document.getElementById('coursesList');
+        
+        if (!COURSES_LIST || COURSES_LIST.length === 0) {
+            container.innerHTML = `
+                <div class="empty-courses">
+                    <div class="empty-courses-icon"> </div>
+                    <div class="empty-courses-title">لا توجد كورسات مضافة بعد</div>
+                    <div class="empty-courses-subtitle">
+                        أضف كورساً جديداً لتبدأ تتبع تقدمك التعليمي
+                    </div>
+                    <button onclick="openAddCourseModal()" class="add-course-btn">
+                        + إضافة أول كورس
+                    </button>
+                </div>
+            `;
+            
+            document.getElementById('totalLessonsLeft').innerText = '0';
+            document.getElementById('activeCourses').innerText = '0';
+            document.getElementById('totalCourses').innerText = '0';
+            
+            updateCourseChart([], []);
+            return;
+        }
+    
+        let html = '';
+        let totalLessonsLeft = 0;
+        let labels = [];
+        let dataPoints = [];
+    
+        COURSES_LIST.forEach((course, index) => {
+            const percentage = course.total > 0 ? Math.round((course.done / course.total) * 100) : 0;
+            totalLessonsLeft += (course.total - course.done);
+            
+            labels.push(course.name);
+            dataPoints.push(course.done);
+    
+            html += `
+            <div class="course-card">
+                <div class="course-meta">
+                    <h3>${course.name}</h3>
+                    <span class="course-percentage">${percentage}%</span>
+                </div>
+                <div class="course-progress">${course.done} / ${course.total} درس</div>
+                <div class="progress-track">
+                    <div class="progress-fill" style="width:${percentage}%"></div>
+                </div>
+                <div class="course-actions">
+                    <button class="c-btn" onclick="modCourse(${index}, 1)">+ درس</button>
+                    <button class="c-btn" onclick="modCourse(${index}, -1)">- درس</button>
+                    <button class="c-btn danger" onclick="delCourse(${index})">حذف</button>
+                </div>
+            </div>`;
+        });
+    
+        container.innerHTML = html;
+        
+        document.getElementById('totalLessonsLeft').innerText = totalLessonsLeft;
+        document.getElementById('activeCourses').innerText = COURSES_LIST.length;
+        document.getElementById('totalCourses').innerText = COURSES_LIST.length;
+        
+        updateCourseChart(labels, dataPoints);
+    }
+    
+    function updateCourseChart(labels, data) {
+        const ctx = document.getElementById('courseChart').getContext('2d');
+        if (courseChartInstance) courseChartInstance.destroy();
+        
+        if (labels.length === 0 || data.length === 0) {
+            courseChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['لا توجد بيانات'],
+                    datasets: [{
+                        data: [1],
+                        backgroundColor: ['#2a2a2a'],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    cutout: '70%'
+                }
+            });
+            return;
+        }
+        
+        courseChartInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: [
+                        '#00e676', '#3b82f6', '#f59e0b', '#ef4444',
+                        '#8b5cf6', '#10b981', '#f97316', '#06b6d4'
+                    ],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#b0b0b0',
+                            font: {
+                                size: 12
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+    }
+    
+    // ==== المودالات ====
+    function openAddHabitModal() {
+        document.getElementById('addHabitModal').style.display = 'flex';
+        document.getElementById('newHabitName').value = '';
+        document.getElementById('newHabitTime').value = '';
+        document.getElementById('newHabitName').focus();
+    }
+    
+    function closeAddHabitModal() {
+        document.getElementById('addHabitModal').style.display = 'none';
+    }
+    
+    function openEditHabitModal(index) {
+        currentEditIndex = index;
+        const habitName = HABITS_LIST[index];
+        
+        let name = habitName;
+        let time = '';
+        
+        const timeMatch = habitName.match(/(\d{1,2}:\d{2}\s*(صباحاً|مساءً)?)/);
+        if (timeMatch) {
+            time = timeMatch[0];
+            name = habitName.replace(time, '').trim();
+        }
+        
+        document.getElementById('editHabitName').value = name;
+        document.getElementById('editHabitTime').value = time;
+        document.getElementById('editHabitModal').style.display = 'flex';
+        document.getElementById('editHabitName').focus();
+    }
+    
+    function closeEditHabitModal() {
+        document.getElementById('editHabitModal').style.display = 'none';
+        currentEditIndex = -1;
+        currentEditType = null;
+    }
+    
+    function saveNewHabit() {
+        const nameInput = document.getElementById('newHabitName');
+        const timeInput = document.getElementById('newHabitTime');
+        
+        let habitName = nameInput.value.trim();
+        const time = timeInput.value.trim();
+        
+        if (!habitName) {
+            alert('يرجى إدخال اسم العادة');
+            nameInput.focus();
+            return;
+        }
+        
+        if (time) {
+            habitName = `${habitName} ${time}`;
+        }
+        
+        HABITS_LIST.push(habitName);
+        saveData();
+        closeAddHabitModal();
+    }
+    
+    function saveEditedHabit() {
+        if (currentEditIndex === -1 && !currentEditType) return;
+        
+        const nameInput = document.getElementById('editHabitName');
+        const newName = nameInput.value.trim();
+        
+        if (!newName) {
+            alert('يرجى إدخال اسم العادة');
+            nameInput.focus();
+            return;
+        }
+        
+        if (currentEditType) {
+            // تحرير عادة من قسم العادات
+            const oldName = habitsData[currentEditType][currentEditIndex];
+            habitsData[currentEditType][currentEditIndex] = newName;
+            
+            Object.keys(habitsData.tracking).forEach(date => {
+                if (habitsData.tracking[date][currentEditType] && 
+                    habitsData.tracking[date][currentEditType][oldName] !== undefined) {
+                    habitsData.tracking[date][currentEditType][newName] = 
+                        habitsData.tracking[date][currentEditType][oldName];
+                    delete habitsData.tracking[date][currentEditType][oldName];
+                }
+            });
+            
+            saveHabitsData();
+        } else {
+            // تحرير عادة من قسم الإنتاجية
+            const timeInput = document.getElementById('editHabitTime');
+            const time = timeInput.value.trim();
+            let habitName = newName;
+            
+            if (time) {
+                habitName = `${habitName} ${time}`;
+            }
+            
+            HABITS_LIST[currentEditIndex] = habitName;
+            saveData();
+        }
+        
+        closeEditHabitModal();
+    }
+    
+    function deleteHabit(index) {
+        if (confirm(`هل تريد حذف العادة "${HABITS_LIST[index]}"؟`)) {
+            HABITS_LIST.splice(index, 1);
+            
+            Object.keys(appData).forEach(date => {
+                if (appData[date].habits) {
+                    const habitKey = Object.keys(appData[date].habits)[index];
+                    if (habitKey) {
+                        delete appData[date].habits[habitKey];
+                    }
+                }
+            });
+            
+            saveData();
+        }
+    }
+    
+    // ==== التنقل ====
+    function switchView(viewId) {
+        document.querySelectorAll('.view-section').forEach(section => {
+            section.classList.remove('active');
+        });
+        
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        document.getElementById(viewId).classList.add('active');
+        event.currentTarget.classList.add('active');
+        
+        if (viewId === 'habits') {
+            renderHabitsDashboard();
+        } else if (viewId === 'courses') {
+            renderCourses();
+        }
+    }
+    
+    // ==== إغلاق المودالات ====
+    document.addEventListener('click', function(event) {
+        const addModal = document.getElementById('addHabitModal');
+        const editModal = document.getElementById('editHabitModal');
+        const courseModal = document.getElementById('addCourseModal');
+        
+        if (event.target === addModal) closeAddHabitModal();
+        if (event.target === editModal) closeEditHabitModal();
+        if (event.target === courseModal) closeAddCourseModal();
+    });
+    
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            closeAddHabitModal();
+            closeEditHabitModal();
+            closeAddCourseModal();
+        }
+    });
+    
+    // ===== تهيئة التطبيق عند التحميل =====
+    document.addEventListener('DOMContentLoaded', function() {
+        // التحقق من وضع التطبيق
+        checkDisplayMode();
+        
+        // تسجيل Service Worker
+        registerServiceWorker();
+        
+        // باقي كود التطبيق الأصلي...
+        renderDashboard();
+        renderCourses();
+        
+        // تحسين تجربة اللمس
+        document.querySelectorAll('button, input, .day-column, .habit-dot, .edit-icon').forEach(el => {
+            el.addEventListener('touchstart', function() {
+                this.style.opacity = '0.7';
+            });
+            
+            el.addEventListener('touchend', function() {
+                this.style.opacity = '1';
+            });
+        });
+        
+        // منع التكبير بالدبل تاب
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function(event) {
+            const now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    });
+
+ window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'G-PWFPMRD06Z');
+
+</script>
+</body>
+</html>
